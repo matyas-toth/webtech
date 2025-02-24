@@ -1,0 +1,47 @@
+body {
+    font-family: serif;
+    max-width: 600px;
+    margin: auto;
+    text-align: justify;
+}
+.title {
+    text-align: center;
+    font-style: italic;
+    text-decoration: underline;
+    font-size: 60px;
+}
+.quote {
+    text-align: right;
+    font-style: italic;
+    width: 100%;
+    margin: 0;
+}
+.emphasis {
+    font-weight: bold;
+}
+.name-container {
+    background-color: gray;
+    padding: 5px;
+    margin: 10px;
+    font-size: 30px;
+}
+.card {
+    border: 1px solid gray;
+    background-color: lightgray;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    width: 400px;
+}
+.card img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+}
+.card-content {
+    text-align: left;
+    margin: 10px;
+}
+.card-content p {
+    margin: 0;
+}
