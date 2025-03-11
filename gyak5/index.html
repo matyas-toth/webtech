@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Számkitaláló Játék</title>
+</head>
+<body>
+
+    <script>
+        function startGame() {
+
+            const randomNumber = Math.floor(Math.random() * 1000001);
+            let attempts = 0;
+            const maxAttempts = 20;
+
+            while (attempts < maxAttempts) {
+                let guess = prompt(`Tippelj egy számot (0 és 1 000 000 között)! Próbálkozások száma: ${attempts + 1}/${maxAttempts}`);
+                
+                guess = parseInt(guess);
+
+                if (isNaN(guess)) {
+                    alert("Ez nem szám! Kérlek, adj meg egy érvényes számot!");
+                    continue;
+                }
+
+                attempts++;
+
+                if (guess === randomNumber) {
+                    alert(`Gratulálok, ${attempts}. lépésből eltaláltad!`);
+                    return; // A játék véget ér
+                } else if (guess < randomNumber) {
+                    alert(`${attempts}. tipp nem talált: A megoldás nagyobb.`);
+                } else {
+                    alert(`${attempts}. tipp nem talált: A megoldás kisebb.`);
+                }
+            }
+
+            alert("Sajnos ez most nem sikerült! A keresett szám: " + randomNumber);
+        }
+
+        // Játék indítása
+        startGame();
+    </script>
+
+</body>
+</html>
