@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub User Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f6f8fa;
+            margin: 0;
+            padding: 0;
+            color: #24292e;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .profile-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #f6f8fa;
+            margin-bottom: 15px;
+        }
+        .name {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+        .profile-details {
+            width: 100%;
+        }
+        .detail {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .detail-label {
+            font-weight: 600;
+            width: 120px;
+        }
+        .bio {
+            line-height: 1.5;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f6f8fa;
+            border-radius: 5px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .stat {
+            text-align: center;
+            padding: 10px 20px;
+            background-color: #f6f8fa;
+            border-radius: 8px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0366d6;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #586069;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0366d6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #0366d6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #cb2431;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="user-search.html" class="back-link">← Back to Search</a>
+        <div id="user-profile">
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the username from the URL query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('id');
+            
+            if (!username) {
+                document.getElementById('user-profile').innerHTML = `
+                    <div class="error">
+                        <h2>No username provided</h2>
+                        <p>Please specify a GitHub username in the URL (e.g., user.html?id=microsoft)</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            fetchUserData(username);
+        });
+        
+        function fetchUserData(username) {
+            const token = ''; // Replace with your GitHub token if needed
+            fetch(`https://api.github.com/users/${username}`, {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json',
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`GitHub API returned ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(userData => {
+                displayUserProfile(userData);
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+                document.getElementById('user-profile').innerHTML = `
+                    <div class="error">
+                        <h2>Error loading profile</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        function displayUserProfile(user) {
+            const profileContainer = document.getElementById('user-profile');
+            
+            // Build the HTML content
+            let content = `<div class="profile-card">`;
+            
+            // Profile header
+            content += `<div class="profile-header">`;
+            if (user.avatar_url) {
+                content += `<img src="${user.avatar_url}" alt="${user.login}'s avatar" class="avatar">`;
+            }
+            
+            if (user.name) {
+                content += `<h1 class="name">${user.name}</h1>`;
+            }
+            
+            content += `<h2>@${user.login}</h2>`;
+            
+            if (user.bio) {
+                content += `<div class="bio">${user.bio}</div>`;
+            }
+            content += `</div>`;
+            
+            // Profile details
+            content += `<div class="profile-details">`;
+            
+            if (user.location) {
+                content += `
+                    <div class="detail">
+                        <span class="detail-label">Location:</span>
+                        <span>${user.location}</span>
+                    </div>
+                `;
+            }
+            
+            if (user.blog && user.blog.trim() !== '') {
+                // Format blog URL properly if it doesn't have http/https
+                let blogUrl = user.blog;
+                if (!blogUrl.startsWith('http://') && !blogUrl.startsWith('https://')) {
+                    blogUrl = 'https://' + blogUrl;
+                }
+                
+                content += `
+                    <div class="detail">
+                        <span class="detail-label">Website:</span>
+                        <a href="${blogUrl}" target="_blank">${user.blog}</a>
+                    </div>
+                `;
+            }
+            
+            content += `</div>`;
+            
+            // Stats
+            content += `<div class="stats">`;
+            if (user.public_repos !== null && user.public_repos !== undefined) {
+                content += `
+                    <div class="stat">
+                        <div class="stat-value">${user.public_repos}</div>
+                        <div class="stat-label">Public Repos</div>
+                    </div>
+                `;
+            }
+            
+            if (user.followers !== null && user.followers !== undefined) {
+                content += `
+                    <div class="stat">
+                        <div class="stat-value">${user.followers}</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                `;
+            }
+            content += `</div>`;
+            
+            content += `</div>`;
+            
+            // Update the profile container
+            profileContainer.innerHTML = content;
+        }
+    </script>
+</body>
+</html> 
