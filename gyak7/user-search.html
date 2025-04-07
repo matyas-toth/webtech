@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git App - User Keresés</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <p>User Keresés</p>
+
+    <h4>User Keresése</h4>
+
+    <label for="user-name">User neve:</label>
+    <input type="text" id="user-name" placeholder="">
+
+    <button class="btn btn-primary" id="search-button">Keresés</button>
+
+    <div id="search-results"></div>
+
+    <script src="app.js"></script>
+
+    <script>
+        function searchUser(searchText) {
+            const token = ''; // Replace with your actual GitHub token
+            fetch(`https://api.github.com/search/users?q=${searchText}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('search-results');
+                    resultsDiv.innerHTML = `
+                        <h3>User Search Results</h3>
+                        <ul>
+                            ${data.items.map(user => {
+                                // Fetch additional user details including followers and public_repos
+                                return fetch(`https://api.github.com/users/${user.login}`, {
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Accept': 'application/vnd.github.v3+json'
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(userDetails => `
+                                    <li class="card">
+                                        <img src="${user.avatar_url}" alt="${user.login}'s avatar" style="width: 100px; border-radius: 50%;">
+                                        <a href="${user.html_url}" target="_blank">${user.login}</a>
+                                        <p>Public Repos: ${userDetails.public_repos}</p>
+                                        <p>Followers: ${userDetails.followers}</p>
+                                    </li>
+                                `);
+                            })}
+                        </ul>
+                    `;
+                    // Resolve all promises for user details
+                    Promise.all(data.items.map(user => 
+                        fetch(`https://api.github.com/users/${user.login}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(userDetails => ({
+                            ...user,
+                            public_repos: userDetails.public_repos,
+                            followers: userDetails.followers
+                        }))
+                    )).then(users => {
+                        resultsDiv.innerHTML = `
+                            <h3>User Search Results</h3>
+                            <ul style="list-style: none; padding: 0;">
+                                ${users.map(user => `
+                                    <li class="card" style="margin-bottom: 20px; padding: 15px;">
+                                        <img src="${user.avatar_url}" alt="${user.login}'s avatar" style="width: 100px; border-radius: 50%; margin-bottom: 10px;">
+                                        <h4><a href="${user.html_url}" target="_blank">${user.login}</a></h4>
+                                        <p>Public Repos: ${user.public_repos}</p>
+                                        <p>Followers: ${user.followers}</p>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error searching users:', error);
+                    const resultsDiv = document.getElementById('search-results');
+                    resultsDiv.innerHTML = '<p style="color: red;">Error occurred while searching users. Please try again.</p>';
+                });
+        }
+        
+        document.getElementById('search-button').addEventListener('click', function() {
+            const userName = document.getElementById('user-name').value;
+            if (userName) {
+                searchUser(userName);
+            }
+        });
+
+        // Add enter key support
+        document.getElementById('user-name').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const userName = this.value;
+                if (userName) {
+                    searchUser(userName);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
